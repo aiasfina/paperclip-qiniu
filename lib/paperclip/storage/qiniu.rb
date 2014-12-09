@@ -1,4 +1,5 @@
 require 'paperclip-qiniu/exceptions'
+require 'open-uri'
 
 module Paperclip
   module Storage
@@ -65,6 +66,19 @@ module Paperclip
             nil
           end
         end
+      end
+
+
+      def copy_to_local_file(style, local_dest_path)
+        log("copying #{path(style)} to local file #{local_dest_path}")
+        ::File.open(local_dest_path, 'wb') do |local_file| # sdk is too old.maybe upgrade in the futher.
+          open(public_url(style), 'rb') do |chunk|
+            local_file.write chunk.read
+          end
+        end
+      rescue OpenURI::HTTPError => e
+        warn("#{e} - cannot copy #{path(style)} to local file #{local_dest_path}")
+        false
       end
 
       private
